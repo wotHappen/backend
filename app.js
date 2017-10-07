@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-/***********/
+/*********** DATABASE CONFIG ************/
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
@@ -48,42 +48,32 @@ userSchema.methods.findByUsername = function (name, cb) {
 };
 
 var UserData = mongoose.model('userdata', userSchema, 'userdata');
+/********** END DATABASE CONFIG ***********/
 
-var TestEntry = {
-    username: "test1",
-    password: "test1",
-    globalEnabled: true,
-    entries: []
-}
-/**********/
-
+var schemaObject = require('./schemaObject.js');
+var TODOPlaceHolder = console.log;
 
 
 var userRouter = express.Router();
 
-var schemaObject = require('./schemaObject.js');
-
-var TODOPlaceHolder = console.log;
-
-userRouter.get('/:username', function (req, res, next) {
-    var db = require('./database.js');
-    var newUserData = new db.UserData();
+userRouter.get('/:username', function (req, res) {
+    var newUserData = new UserData();
 
     newUserData.findByUsername(req.params.username, function (err, result) {
         if (err) {
             // TODO: Handler here
             TODOPlaceHolder(1);
-            //db.Close();
+            res.send(req.params.username);
         } else {
             if (result instanceof Array && result.length > 0) {
                 var user = schemaObject.UserStruct.fromObject(result[0]);
-                // TODO: Render page
+                // TODO: Render bomb page
                 TODOPlaceHolder(2);
-                //db.Close();
+                res.send(req.params.username);
             } else {
                 // TODO: Handler here
                 TODOPlaceHolder(3);
-                //db.Close();
+                res.send(req.params.username);
             }
         }
     });
@@ -91,33 +81,83 @@ userRouter.get('/:username', function (req, res, next) {
 
 app.use("/user", userRouter);
 
+
+
 var dashboardRouter = express.Router();
 
-dashboardRouter.get("/:username", function () {
-    var db = require('./database.js');
-    var newUserData = new db.UserData();
+dashboardRouter.get("/:username", function (req, res) {
+    var newUserData = new UserData();
 
     newUserData.findByUsername(req.params.username, function (err, result) {
         if (err) {
             // TODO: Handler here
             TODOPlaceHolder(4);
-            db.Close();
+            res.send(req.params.username);
         } else {
             if (result instanceof Array && result.length > 0) {
                 var user = schemaObject.UserStruct.fromObject(result[0]);
-                // TODO: Render page
+                // TODO: Render dashboard page
                 TODOPlaceHolder(5);
-                db.Close();
+                res.send(req.params.username);
             } else {
                 // TODO: Handler here
                 TODOPlaceHolder(6);
-                db.Close();
+                res.send(req.params.username);
             }
         }
     });
 });
 
-app.use("/dashboard", userRouter);
+app.use("/dashboard", dashboardRouter);
+
+
+
+app.post("/bomb", function (req, res) {
+    var username = req.query.username;
+
+    var newUserData = new UserData();
+
+    newUserData.findByUsername(username, function (err, result) {
+        if (err) {
+            res.send("An error occurred");
+        } else {
+            if (result instanceof Array && result.length > 0) {
+                var user = schemaObject.UserStruct.fromObject(result[0]);
+                // TODO: Render dashboard page
+                res.send("Message sent");
+            } else {
+                res.send("An error occurred");
+            }
+        }
+    });
+});
+
+
+app.post("/update", function (req, res) {
+    var updateType = req.query.updateType;
+
+    switch (updateType) {
+        case "add":
+            
+            break;
+        case "remove":
+            break;
+        default:
+            //TODO: handle error here
+    }
+});
+
+
+
+app.get("/", function (req, res) {
+   //TODO: handle Main page
+});
+
+app.use(function(req, res) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    res.send("404 - Not Found");
+});
 
 app.listen(8000);
 
